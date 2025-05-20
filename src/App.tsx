@@ -1,6 +1,13 @@
 import React, { useState } from "react";
 import axios from "axios";
 import "./App.css";
+import Categories from './categories';
+
+  interface Recipe {
+    title: string;
+    image_url: string;
+    source_url: string;
+  }
 
 function App() {
   //https://forkify-api.herokuapp.com/
@@ -136,70 +143,62 @@ function App() {
     "ribs",
   ];
 
-  const [isUrl, setUrl] = useState<string>("");
-  const [isImage, setImage] = useState<string>("");
-  const [isTitle, setTitle] = useState<string>("");
+  const [recipe, setRecipe] = useState<Recipe[]>([]);
 
-  const getMenu = () => {
-    const randomItem = Math.floor(Math.random() * items.length);
+const getMenu = () => {
+  const randomItem = Math.floor(Math.random() * items.length);
+  axios
+    .get(
+      `https://forkify-api.herokuapp.com/api/search?q=${items[randomItem]}`
+    )
+    .then((response) => {
+      const recipes = response.data.recipes;
+      if (recipes.length === 0) {
+        console.warn("No recipes found for:", items[randomItem]);
+        return;
+      }
+      const randomIndex = Math.floor(Math.random() * recipes.length);
+      const selectedRecipe = recipes[randomIndex];
+      const currRecipe = [{
+        title: selectedRecipe.title,
+        image_url: selectedRecipe.image_url,
+        source_url: selectedRecipe.source_url,
+      }];
+      setRecipe(currRecipe);
+    });
+};
+
+
+  const handleClick = (name: string) => {
     axios
-      .get(
-        `https://forkify-api.herokuapp.com/api/search?q=${
-          items[randomItem]
-        }`
-      )
-      .then(
-        (response) => {
-          const recipes = response.data.recipes;
-          if (recipes.length === 0) {
-            console.warn('No recipes found for:', randomItem);
-            return;
-          }
-          const randomIndex = Math.floor(Math.random() * recipes.length);
-          const selectedRecipe = response.data.recipes[randomIndex];
-          setImage(selectedRecipe.image_url);
-          setTitle(selectedRecipe.title);
-          setUrl(selectedRecipe.source_url);
-        }
-      );
-    };
-    
-    const handleClick = (name: string) => {
-      axios
       .get(`https://forkify-api.herokuapp.com/api/search?q=${name}`)
-      .then(
-        (response) => {
-          const recipes = response.data.recipes;
-          if (recipes.length === 0) {
-            console.warn('No recipes found.');
-            return;
-          }
-          const randomIndex = Math.floor(Math.random() * recipes.length);
-          const selectedRecipe = response.data.recipes[randomIndex];
-          setImage(selectedRecipe.image_url);
-          setTitle(selectedRecipe.title);
-          setUrl(selectedRecipe.source_url);
+      .then((response) => {
+        const recipes = response.data.recipes;
+        if (recipes.length === 0) {
+          console.warn("No recipes found.");
+          return;
         }
-      );
+        const formattedRecipes = recipes.map((r: any) => ({
+          title: r.title,
+          image_url: r.image_url,
+          source_url: r.source_url,
+        })
+        )
+        setRecipe(formattedRecipes);
+        console.log(formattedRecipes);
+      });
   };
-
-  /*
-  Egy listát csinálni az összes ételből.
-  */
 
   return (
     <div className="App">
       <header className="App-header"></header>
       <button onClick={getMenu}>Get a random meal</button>
       <p>Itt random menüt kapsz a kiválasztott kategóriából.</p>
-      <ul className="grid-list">
-  {items.map((item, index) => (
-    <li key={index} onClick={() => handleClick(item)}>
-      {item}
-    </li>
-  ))}
-</ul>
-      {isImage.length === 0 ? '' : <a target="blank" href={`${isUrl}`}><img src={`${isImage}`} alt={`${isTitle}`}/></a>}
+      <Categories
+        items={items}
+        recipe={recipe}
+        handleClick={handleClick}
+      />
     </div>
   );
 }

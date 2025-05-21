@@ -1,16 +1,19 @@
 import React, { useState } from "react";
+import { Link, Routes, Route } from "react-router-dom";
 import axios from "axios";
 import "./App.css";
-import Categories from './categories';
+import Categories from "./Components/categories";
 
-  interface Recipe {
-    title: string;
-    image_url: string;
-    source_url: string;
-  }
+interface Recipe {
+  title: string;
+  image_url: string;
+  source_url: string;
+}
 
 function App() {
   //https://forkify-api.herokuapp.com/
+
+    const btnText:string = 'Details >>>';
 
   const items: string[] = [
     "carrot",
@@ -145,29 +148,30 @@ function App() {
 
   const [recipe, setRecipe] = useState<Recipe[]>([]);
 
-const getMenu = () => {
-  const randomItem = Math.floor(Math.random() * items.length);
-  axios
-    .get(
-      `https://forkify-api.herokuapp.com/api/search?q=${items[randomItem]}`
-    )
-    .then((response) => {
-      const recipes = response.data.recipes;
-      if (recipes.length === 0) {
-        console.warn("No recipes found for:", items[randomItem]);
-        return;
-      }
-      const randomIndex = Math.floor(Math.random() * recipes.length);
-      const selectedRecipe = recipes[randomIndex];
-      const currRecipe = [{
-        title: selectedRecipe.title,
-        image_url: selectedRecipe.image_url,
-        source_url: selectedRecipe.source_url,
-      }];
-      setRecipe(currRecipe);
-    });
-};
-
+  const getMenu = () => {
+    const randomItem = Math.floor(Math.random() * items.length);
+    axios
+      .get(
+        `https://forkify-api.herokuapp.com/api/search?q=${items[randomItem]}`
+      )
+      .then((response) => {
+        const recipes = response.data.recipes;
+        if (recipes.length === 0) {
+          console.warn("No recipes found for:", items[randomItem]);
+          return;
+        }
+        const randomIndex = Math.floor(Math.random() * recipes.length);
+        const selectedRecipe = recipes[randomIndex];
+        const currRecipe = [
+          {
+            title: selectedRecipe.title,
+            image_url: selectedRecipe.image_url,
+            source_url: selectedRecipe.source_url,
+          },
+        ];
+        setRecipe(currRecipe);
+      });
+  };
 
   const handleClick = (name: string) => {
     axios
@@ -182,23 +186,54 @@ const getMenu = () => {
           title: r.title,
           image_url: r.image_url,
           source_url: r.source_url,
-        })
-        )
+        }));
         setRecipe(formattedRecipes);
-        console.log(formattedRecipes);
       });
   };
 
+  const resetResult = () => {
+    setRecipe([]);
+  }
+
   return (
     <div className="App">
-      <header className="App-header"></header>
-      <button onClick={getMenu}>Get a random meal</button>
-      <p>Itt random menüt kapsz a kiválasztott kategóriából.</p>
-      <Categories
-        items={items}
-        recipe={recipe}
-        handleClick={handleClick}
-      />
+      <header className="App-header">
+        <nav className="App-header-nav">
+          <ul className="App-header-nav-ul">
+            <li><Link to="/" onClick={resetResult} className="App-header-nav-ul-li_link">Home</Link></li>
+            <li><Link to="/categories" onClick={resetResult} className="App-header-nav-ul-li_link">Categories</Link></li>
+          </ul>
+        </nav>
+      </header>
+      <Routes>
+        <Route path="/categories" element={
+          <Categories items={items} recipe={recipe} handleClick={handleClick} btnText={btnText}/>
+        } />
+        <Route path="/" element={
+          <>
+          <div className="home-decoration-1"></div>
+          <div className="home-decoration-2"></div>
+          <div className="home-decoration-3"></div>
+            <button onClick={getMenu}>Get a random meal</button>
+            <p className="instructions">Itt random menüt kapsz random kategóriából.
+              A kategóriáknál viszont választhatsz az összes meglévő ételből.
+            </p>
+            {recipe.length > 0 && (
+              <>
+                {recipe.map((item, index) => (
+                  <div key={index} className="recipe-card">
+                      <p className="recipe-title">{item.title}</p>
+                      <img src={item.image_url} alt={item.title} className="recipe-image" />
+                    <a href={item.source_url} target="_blank" rel="noopener noreferrer">
+                      <button className="btn-details">{btnText}</button>
+                    </a>
+                  </div>
+                ))}
+              </>
+            )}
+          </>
+        } />
+      </Routes>
     </div>
   );
 }

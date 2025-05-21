@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link, Routes, Route } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, Routes, Route, useLocation } from "react-router-dom";
 import axios from "axios";
 import "./App.css";
 import Categories from "./Components/categories";
@@ -13,7 +13,19 @@ interface Recipe {
 function App() {
   //https://forkify-api.herokuapp.com/
 
+  const location = useLocation();
+
+  useEffect(() => {
+    if(location.pathname === '/categories') {
+      document.title = 'Everyday Meals | Categories'
+    } else {
+      document.title = 'Everyday Meals | Home'
+    }
+  }, [location.pathname]);
+
     const btnText:string = 'Details >>>';
+
+    const mainText: string = `Click the button below for a random meal, or explore the 'Categories' menu to find meals by category.`;
 
   const items: string[] = [
     "carrot",
@@ -214,10 +226,9 @@ function App() {
           <div className="home-decoration-1"></div>
           <div className="home-decoration-2"></div>
           <div className="home-decoration-3"></div>
-            <button onClick={getMenu}>Get a random meal</button>
-            <p className="instructions">Itt random menüt kapsz random kategóriából.
-              A kategóriáknál viszont választhatsz az összes meglévő ételből.
+            <p className="instructions">{mainText}
             </p>
+            <button onClick={getMenu} className="btn-main">Get a random meal</button>
             {recipe.length > 0 && (
               <>
                 {recipe.map((item, index) => (

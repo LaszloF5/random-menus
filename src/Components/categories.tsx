@@ -13,7 +13,7 @@ interface CategoriesProps {
   handleClick: (name: string) => void;
 }
 
-const categories: React.FC<CategoriesProps> = ({
+const Categories: React.FC<CategoriesProps> = ({
   btnText,
   items,
   recipe,
@@ -54,4 +54,4 @@ const categories: React.FC<CategoriesProps> = ({
   );
 };
 
-export default categories;
+export default Categories;
